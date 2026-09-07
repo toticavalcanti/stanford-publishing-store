@@ -14,7 +14,7 @@ const steps = [
   },
   {
     title: "Se liberan los accesos",
-    text: "La tienda genera un código por ejemplar. Las escuelas reciben la lista completa del grupo en un solo archivo.",
+    text: "La tienda generaría un código por ejemplar y las escuelas recibirían la lista completa del grupo en un solo archivo. Regla hipotética, por validar.",
   },
   {
     title: "El material queda disponible",
@@ -74,7 +74,7 @@ export default function RecursosPage() {
                     <h3>{book.title}</h3>
                     <p className="small muted">{book.subject}</p>
                     <p className="resource__code">
-                      <span className="muted small">Código de acceso</span>
+                      <span className="muted small">Código de acceso (ejemplo)</span>
                       <code>SP-{book.id.toUpperCase()}-4821</code>
                     </p>
                   </div>
@@ -92,6 +92,10 @@ export default function RecursosPage() {
               <p className="muted small">
                 Una sola descarga con los códigos por alumno y por título, lista para repartir en
                 clase.
+              </p>
+              <p className="hypothesis">
+                Un código por ejemplar y el archivo en lote son hipótesis de esta muestra, sujetas
+                a validación con Stanford Publishing.
               </p>
             </div>
             <Link href="/paquetes" className="btn btn--ghost">

@@ -5,7 +5,7 @@ import BookCover from "@/components/BookCover";
 import BookCard from "@/components/BookCard";
 import AddToCart from "@/components/AddToCart";
 import Reveal from "@/components/Reveal";
-import { books, getBook, gradeLabel, levelLabel, semesterLabel } from "@/data/catalog";
+import { books, getBook, isbnLabel, levelLabel, stageLabel } from "@/data/catalog";
 import { mxn } from "@/lib/format";
 
 type Params = Promise<{ slug: string }>;
@@ -25,14 +25,7 @@ export default async function BookPage({ params }: { params: Params }) {
   const book = getBook(slug);
   if (!book) notFound();
 
-  const stage =
-    book.level === "secundaria"
-      ? book.grade
-        ? gradeLabel[book.grade]
-        : ""
-      : book.semester
-        ? semesterLabel[book.semester]
-        : "";
+  const stage = stageLabel(book);
 
   const related = books
     .filter((b) => b.id !== book.id && b.collection === book.collection)
@@ -73,7 +66,12 @@ export default async function BookPage({ params }: { params: Params }) {
                 </div>
                 <div>
                   <dt>ISBN</dt>
-                  <dd>{book.isbn}</dd>
+                  <dd>
+                    {isbnLabel(book)}
+                    {book.isbnStatus !== "verificado" && (
+                      <span className="small muted"> · dato no confirmado en la fuente oficial</span>
+                    )}
+                  </dd>
                 </div>
                 <div>
                   <dt>Disciplina</dt>
@@ -87,10 +85,15 @@ export default async function BookPage({ params }: { params: Params }) {
 
               <div className="buybox">
                 <p className="buybox__price price">{mxn(book.price)}</p>
-                <p className="small muted">Precio público sugerido, IVA incluido.</p>
+                <p className="hypothesis">
+                  Precio hipotético para esta muestra, sujeto a validación con Stanford Publishing.
+                </p>
                 <div className="buybox__actions">
                   <AddToCart bookId={book.id} block />
-                  <Link href={`/cotizacion?libro=${book.slug}`} className="btn btn--ghost btn--block">
+                  <Link
+                    href={`/cotizacion?libro=${book.slug}&cantidad=1`}
+                    className="btn btn--ghost btn--block"
+                  >
                     Solicitar cotización institucional
                   </Link>
                 </div>
@@ -98,8 +101,8 @@ export default async function BookPage({ params }: { params: Params }) {
                   <p className="buybox__digital">
                     <span className="badge badge--digital">Recursos digitales</span>
                     <span className="small muted">
-                      La compra libera el material del título en la plataforma.{" "}
-                      <Link href="/recursos">Ver cómo funciona</Link>
+                      Modelo hipotético: la compra liberaría el material del título en la
+                      plataforma. <Link href="/recursos">Ver cómo funciona</Link>
                     </span>
                   </p>
                 )}

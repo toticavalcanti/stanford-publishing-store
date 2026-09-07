@@ -59,3 +59,19 @@ the same shape maps cleanly onto a CMS or a relational schema later.
 - Stock and fulfilment, plus distributor allocation by region
 - Integration with the existing platform so purchases grant real access to digital resources
 - Analytics on catalogue navigation and abandoned institutional quotes
+
+## Review pass (September 2026)
+
+| Area | Change |
+|---|---|
+| ISBN integrity | Every ISBN validated; `isbnStatus` added to the model; the UI shows `Por confirmar` instead of a dubious number. Report in `docs/isbn-status.md` |
+| Quote context | `/cotizacion` reads `libro`, `cantidad`, `paquete`, `alumnos`, `incluidos` and `origen`, and renders "Resumen de la solicitud" |
+| Package context | The builder passes the students count and the surviving titles into the quote; removed titles are listed as removed |
+| Checkout | New `/pedido/checkout` step with contact, address and simulated payment method |
+| Totals | `lib/pricing.ts` + `OrderSummaryLines` make cart, checkout, quote and confirmation agree |
+| Package discounts | Cart lines carry `packageId`, `packageName`, `unitPrice` and `discount`; the line key is `bookId::packageId` |
+| Order snapshot | Frozen in `sessionStorage` at checkout, before the cart is cleared |
+| Hypotheses | `Hypothesis` component marks prices, discounts, shipping and digital-access rules |
+| Covers | Local-first with remote and typographic fallbacks; `scripts/download-covers.mjs` populates the manifest |
+| ESLint | Flat config (`eslint.config.mjs`), `npm run lint` runs non-interactively and exits 0 |
+| Accessibility | Admin tabs use `tablist`/`tab`/`tabpanel` with arrow-key navigation; `overflow-x: hidden` removed from `body` in favour of real `min-width: 0` fixes |

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { adminMetrics, distributors, orders, schools } from "@/data/admin";
-import { books, levelLabel } from "@/data/catalog";
+import { books, isbnLabel, levelLabel } from "@/data/catalog";
 import { mxn } from "@/lib/format";
 
 const tabs = [
@@ -20,22 +20,38 @@ export default function AdminScreens() {
 
   return (
     <div className="admin">
-      <nav className="admin__tabs" aria-label="Secciones de administración">
+      <div
+        className="admin__tabs"
+        role="tablist"
+        aria-label="Secciones de administración"
+        onKeyDown={(event) => {
+          const index = tabs.findIndex((t) => t.id === tab);
+          if (event.key === "ArrowRight") {
+            setTab(tabs[(index + 1) % tabs.length].id);
+          } else if (event.key === "ArrowLeft") {
+            setTab(tabs[(index - 1 + tabs.length) % tabs.length].id);
+          }
+        }}
+      >
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
+            role="tab"
+            id={`tab-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls={`panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
             className={`admin__tab ${tab === t.id ? "is-on" : ""}`}
-            aria-current={tab === t.id ? "page" : undefined}
             onClick={() => setTab(t.id)}
           >
             {t.label}
           </button>
         ))}
-      </nav>
+      </div>
 
       {tab === "resumen" && (
-        <div className="stack">
+        <div className="stack" role="tabpanel" id="panel-resumen" aria-labelledby="tab-resumen" tabIndex={0}>
           <div className="metrics">
             {adminMetrics.map((m) => (
               <div key={m.label} className="metric">
@@ -81,7 +97,7 @@ export default function AdminScreens() {
       )}
 
       {tab === "catalogo" && (
-        <div className="stack">
+        <div className="stack" role="tabpanel" id="panel-catalogo" aria-labelledby="tab-catalogo" tabIndex={0}>
           <div className="section-head">
             <div>
               <h2>Catálogo</h2>
@@ -111,7 +127,7 @@ export default function AdminScreens() {
                     <td>{levelLabel[b.level]}</td>
                     <td>{b.subject}</td>
                     <td>{b.collection}</td>
-                    <td>{b.isbn}</td>
+                    <td>{isbnLabel(b)}</td>
                     <td>{mxn(b.price)}</td>
                     <td>{b.digital ? "Sí" : "No"}</td>
                   </tr>
@@ -124,7 +140,7 @@ export default function AdminScreens() {
       )}
 
       {tab === "pedidos" && (
-        <div className="stack">
+        <div className="stack" role="tabpanel" id="panel-pedidos" aria-labelledby="tab-pedidos" tabIndex={0}>
           <h2>Pedidos</h2>
           <div className="table-wrap">
             <table className="data">
@@ -162,7 +178,7 @@ export default function AdminScreens() {
       )}
 
       {tab === "escuelas" && (
-        <div className="stack">
+        <div className="stack" role="tabpanel" id="panel-escuelas" aria-labelledby="tab-escuelas" tabIndex={0}>
           <h2>Escuelas</h2>
           <div className="table-wrap">
             <table className="data">
@@ -198,7 +214,7 @@ export default function AdminScreens() {
       )}
 
       {tab === "distribuidores" && (
-        <div className="stack">
+        <div className="stack" role="tabpanel" id="panel-distribuidores" aria-labelledby="tab-distribuidores" tabIndex={0}>
           <h2>Distribuidores</h2>
           <div className="table-wrap">
             <table className="data">

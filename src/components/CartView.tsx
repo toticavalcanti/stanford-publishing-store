@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import BookCover from "./BookCover";
+import OrderSummaryLines from "./OrderSummaryLines";
 import { useCart } from "./CartProvider";
-import { books } from "@/data/catalog";
-import { mxn } from "@/lib/format";
+import { getBookById, isbnLabel } from "@/data/catalog";
+import { mxn, percent } from "@/lib/format";
+import { lineGross, lineKey, lineTotal } from "@/lib/pricing";
 
 export default function CartView() {
-  const { lines, subtotal, count, setQuantity, remove, ready } = useCart();
-  const router = useRouter();
+  const { lines, totals, setQuantity, remove, ready } = useCart();
 
   if (!ready) {
     return <p className="muted">Cargando el carrito…</p>;
@@ -34,42 +34,60 @@ export default function CartView() {
     );
   }
 
-  const shipping = subtotal > 3000 ? 0 : 189;
+  const packageRate = lines.find((l) => l.discount)?.discount;
 
   return (
     <div className="cart">
       <ul className="cart__lines">
         {lines.map((line) => {
-          const book = books.find((b) => b.id === line.bookId);
+          const book = getBookById(line.bookId);
           if (!book) return null;
+          const key = lineKey(line);
           return (
-            <li key={line.bookId} className="cart-line">
+            <li key={key} className="cart-line">
               <BookCover book={book} className="cover--mini" />
               <div className="cart-line__body">
                 <Link href={`/libro/${book.slug}`} className="cart-line__title">
                   {book.title}
                 </Link>
                 <p className="small muted">
-                  {book.subject} · ISBN {book.isbn}
+                  {book.subject} · ISBN {isbnLabel(book)}
                 </p>
-                <button type="button" className="btn btn--quiet btn--sm" onClick={() => remove(book.id)}>
+                {line.packageName && (
+                  <p className="cart-line__origin">
+                    <span className="badge badge--digital">
+                      {line.packageName}
+                      {line.discount ? ` · −${percent(line.discount)}` : ""}
+                    </span>
+                  </p>
+                )}
+                <button type="button" className="btn btn--quiet btn--sm" onClick={() => remove(key)}>
                   Quitar
                 </button>
               </div>
               <div className="cart-line__qty">
-                <label className="visually-hidden" htmlFor={`qty-${book.id}`}>
+                <label className="visually-hidden" htmlFor={`qty-${key}`}>
                   Cantidad de {book.title}
                 </label>
                 <input
-                  id={`qty-${book.id}`}
+                  id={`qty-${key}`}
                   type="number"
                   min={1}
                   max={5000}
                   value={line.quantity}
-                  onChange={(e) => setQuantity(book.id, Number(e.target.value) || 1)}
+                  onChange={(e) => setQuantity(key, Number(e.target.value) || 1)}
                 />
               </div>
-              <p className="cart-line__total price">{mxn(book.price * line.quantity)}</p>
+              <p className="cart-line__total">
+                {line.discount ? (
+                  <>
+                    <span className="cart-line__was">{mxn(lineGross(line))}</span>
+                    <span className="price">{mxn(lineTotal(line))}</span>
+                  </>
+                ) : (
+                  <span className="price">{mxn(lineTotal(line))}</span>
+                )}
+              </p>
             </li>
           );
         })}
@@ -77,37 +95,16 @@ export default function CartView() {
 
       <aside className="cart__summary">
         <h2>Resumen</h2>
-        <dl className="summary-lines">
-          <div>
-            <dt>Ejemplares</dt>
-            <dd>{count}</dd>
-          </div>
-          <div>
-            <dt>Subtotal</dt>
-            <dd>{mxn(subtotal)}</dd>
-          </div>
-          <div>
-            <dt>Envío</dt>
-            <dd>{shipping === 0 ? "Incluido" : mxn(shipping)}</dd>
-          </div>
-          <div className="summary-lines__total">
-            <dt>Total</dt>
-            <dd>{mxn(subtotal + shipping)}</dd>
-          </div>
-        </dl>
+        <OrderSummaryLines totals={totals} discountRate={packageRate} />
 
-        <button
-          type="button"
-          className="btn btn--block"
-          onClick={() => router.push("/pedido/confirmado")}
-        >
-          Pagar
-        </button>
+        <Link href="/pedido/checkout" className="btn btn--block">
+          Continuar al pago
+        </Link>
         <Link href="/cotizacion?origen=carrito" className="btn btn--ghost btn--block">
           Convertir en cotización institucional
         </Link>
         <p className="small muted">
-          Ningún cobro se procesa en este prototipo. El botón lleva a la pantalla de confirmación.
+          Demostración visual. No se realizará ningún cobro ni se enviará información.
         </p>
       </aside>
     </div>

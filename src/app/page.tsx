@@ -5,6 +5,7 @@ import BookCover from "@/components/BookCover";
 import { books, entryPoints, newBooks } from "@/data/catalog";
 import { packages } from "@/data/packages";
 import { mxn } from "@/lib/format";
+import { round2 } from "@/lib/pricing";
 
 const shelf = ["pm1", "sec-esp1", "buzz1"]
   .map((id) => books.find((b) => b.id === id))
@@ -205,14 +206,14 @@ export default function HomePage() {
                 <span className="muted small">
                   {samplePackage.bookIds.length} títulos · desde{" "}
                   {mxn(
-                    Math.round(
+                    round2(
                       books
                         .filter((b) => samplePackage.bookIds.includes(b.id))
                         .reduce((s, b) => s + b.price, 0) *
                         (1 - samplePackage.discount)
                     )
                   )}{" "}
-                  por alumno
+                  por alumno (hipotético)
                 </span>
               </p>
               <Link href="/paquetes" className="btn">

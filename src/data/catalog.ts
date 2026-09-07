@@ -1,5 +1,6 @@
 import { bachilleratoBooks } from "./books";
 import { secundariaBooks } from "./books-secundaria";
+import { localCovers } from "./covers";
 import type { Book, Level } from "./types";
 
 export const books: Book[] = [...secundariaBooks, ...bachilleratoBooks];
@@ -24,12 +25,36 @@ export const semesterLabel: Record<number, string> = {
   6: "Sexto semestre",
 };
 
+/** What the interface shows in place of an ISBN we cannot vouch for. */
+export function isbnLabel(book: Book): string {
+  if (book.isbnStatus === "verificado" && book.isbn) return book.isbn;
+  if (book.isbnStatus === "en-tramite") return "En trámite";
+  return "Por confirmar";
+}
+
+/** Local file when it exists, otherwise the publisher's own URL. */
+export function coverSrc(book: Book): string {
+  return localCovers[book.slug] ?? book.cover;
+}
+
+/** Stage label: grade for secundaria, semester for bachillerato. */
+export function stageLabel(book: Book): string {
+  if (book.level === "secundaria") {
+    return book.grade ? gradeLabel[book.grade] : "Secundaria";
+  }
+  return book.semester ? semesterLabel[book.semester] : "Bachillerato";
+}
+
 export function getBook(slug: string): Book | undefined {
   return books.find((b) => b.slug === slug);
 }
 
+export function getBookById(id: string): Book | undefined {
+  return books.find((b) => b.id === id);
+}
+
 export function getBooksByIds(ids: string[]): Book[] {
-  return ids.map((id) => books.find((b) => b.id === id)).filter((b): b is Book => Boolean(b));
+  return ids.map((id) => getBookById(id)).filter((b): b is Book => Boolean(b));
 }
 
 export function subjectsFor(level?: Level): string[] {

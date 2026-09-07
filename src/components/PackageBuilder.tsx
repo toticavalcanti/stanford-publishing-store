@@ -6,7 +6,8 @@ import BookCover from "./BookCover";
 import { useCart } from "./CartProvider";
 import { packages } from "@/data/packages";
 import { getBooksByIds, levelLabel } from "@/data/catalog";
-import { mxn } from "@/lib/format";
+import { mxn, percent } from "@/lib/format";
+import { round2 } from "@/lib/pricing";
 
 export default function PackageBuilder() {
   const [selectedId, setSelectedId] = useState(packages[0].id);
@@ -17,19 +18,21 @@ export default function PackageBuilder() {
 
   const pack = packages.find((p) => p.id === selectedId)!;
   const allBooks = getBooksByIds(pack.bookIds);
-  const includedBooks = allBooks.filter((b) => !excluded.includes(b.id));
-
-  const perStudent = useMemo(
-    () => includedBooks.reduce((sum, b) => sum + b.price, 0),
-    [includedBooks]
+  const includedBooks = useMemo(
+    () => allBooks.filter((b) => !excluded.includes(b.id)),
+    [allBooks, excluded]
   );
-  const listTotal = perStudent * students;
-  const discounted = Math.round(listTotal * (1 - pack.discount));
+
+  const perStudent = includedBooks.reduce((sum, b) => sum + b.price, 0);
+  const listTotal = round2(perStudent * students);
+  const discountValue = round2(listTotal * pack.discount);
+  const estimated = round2(listTotal - discountValue);
 
   function toggle(bookId: string) {
     setExcluded((prev) =>
       prev.includes(bookId) ? prev.filter((id) => id !== bookId) : [...prev, bookId]
     );
+    setAdded(false);
   }
 
   function selectPackage(id: string) {
@@ -38,15 +41,19 @@ export default function PackageBuilder() {
     setAdded(false);
   }
 
+  const quoteHref =
+    `/cotizacion?paquete=${pack.id}` +
+    `&alumnos=${students}` +
+    `&incluidos=${includedBooks.map((b) => b.id).join(",")}`;
+
   return (
     <div className="packages">
-      <div className="packages__picker" role="tablist" aria-label="Paquetes disponibles">
+      <div className="packages__picker" role="group" aria-label="Paquetes disponibles">
         {packages.map((p) => (
           <button
             key={p.id}
             type="button"
-            role="tab"
-            aria-selected={p.id === selectedId}
+            aria-pressed={p.id === selectedId}
             className={`package-tab ${p.id === selectedId ? "is-on" : ""}`}
             onClick={() => selectPackage(p.id)}
           >
@@ -81,6 +88,7 @@ export default function PackageBuilder() {
                     onClick={() => toggle(book.id)}
                   >
                     {isIn ? "Quitar" : "Incluir"}
+                    <span className="visually-hidden"> {book.title}</span>
                   </button>
                 </li>
               );
@@ -91,16 +99,20 @@ export default function PackageBuilder() {
         <aside className="packages__summary">
           <h3>Resumen del pedido</h3>
 
-          <label className="field">
-            <span>Número de alumnos</span>
+          <div className="field">
+            <label htmlFor="alumnos-paquete">Número de alumnos</label>
             <input
+              id="alumnos-paquete"
               type="number"
               min={1}
               max={2000}
               value={students}
-              onChange={(e) => setStudents(Math.max(1, Number(e.target.value) || 1))}
+              onChange={(e) => {
+                setStudents(Math.max(1, Number(e.target.value) || 1));
+                setAdded(false);
+              }}
             />
-          </label>
+          </div>
 
           <dl className="summary-lines">
             <div>
@@ -120,12 +132,12 @@ export default function PackageBuilder() {
               <dd>{mxn(listTotal)}</dd>
             </div>
             <div className="summary-lines__discount">
-              <dt>Condición institucional</dt>
-              <dd>−{Math.round(pack.discount * 100)}%</dd>
+              <dt>Descuento institucional ({percent(pack.discount)})</dt>
+              <dd>−{mxn(discountValue)}</dd>
             </div>
             <div className="summary-lines__total">
               <dt>Total estimado</dt>
-              <dd>{mxn(discounted)}</dd>
+              <dd>{mxn(estimated)}</dd>
             </div>
           </dl>
 
@@ -134,7 +146,14 @@ export default function PackageBuilder() {
             className="btn btn--block"
             disabled={includedBooks.length === 0}
             onClick={() => {
-              includedBooks.forEach((b) => add(b.id, students));
+              includedBooks.forEach((b) =>
+                add(b.id, {
+                  quantity: students,
+                  packageId: pack.id,
+                  packageName: pack.name,
+                  discount: pack.discount,
+                })
+              );
               setAdded(true);
               window.setTimeout(() => setAdded(false), 2200);
             }}
@@ -142,13 +161,13 @@ export default function PackageBuilder() {
             {added ? "Paquete agregado" : "Agregar el paquete al carrito"}
           </button>
 
-          <Link href={`/cotizacion?paquete=${pack.id}&alumnos=${students}`} className="btn btn--ghost btn--block">
+          <Link href={quoteHref} className="btn btn--ghost btn--block">
             Solicitar cotización formal
           </Link>
 
-          <p className="small muted">
-            El descuento mostrado es un supuesto del prototipo. Las condiciones reales se definen con
-            Stanford Publishing.
+          <p className="hypothesis">
+            Precios y descuento institucional hipotéticos para esta muestra, sujetos a validación
+            con Stanford Publishing.
           </p>
         </aside>
       </div>

@@ -51,7 +51,6 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
 
 img {
@@ -1758,4 +1757,229 @@ table.data tr:last-child td {
 .footer__legal p {
   margin: 0;
   max-width: none;
+}
+
+/* =========================================================================
+   Review pass: hypotheses, quote summary, checkout, overflow hardening
+   ========================================================================= */
+
+/* Grid and flex children must be allowed to shrink, otherwise long strings
+   push the page wider than the viewport. */
+.shell > *,
+.grid-books > *,
+.grid-collections > *,
+.grid-audience > *,
+.cart > *,
+.checkout > *,
+.packages__panel > *,
+.package-teaser > *,
+.resources > *,
+.metrics > *,
+.footer__grid > * {
+  min-width: 0;
+}
+
+.cart-line__body,
+.package-list li > div,
+.resource__body,
+.quote-summary__books li,
+.checkout__items li,
+.confirmation__items li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.specs dd,
+.cart-line__title,
+.book-card__title {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 380px) {
+  .specs > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+/* ------------------------------------------------------------- hypotheses */
+
+.hypothesis {
+  margin: 10px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+.summary-lines .hypothesis {
+  margin-top: 14px;
+  padding-top: 0;
+}
+
+/* ---------------------------------------------------------- quote summary */
+
+.quote {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.quote-summary {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--blue);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+}
+.quote-summary h2 {
+  margin: 0 0 14px;
+  font-size: 1.15rem;
+}
+
+.quote-summary__rows {
+  margin: 0 0 16px;
+  display: grid;
+  gap: 8px;
+}
+.quote-summary__rows > div {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px;
+  font-size: 0.92rem;
+}
+.quote-summary__rows dt {
+  color: var(--muted);
+}
+.quote-summary__rows dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 420px) {
+  .quote-summary__rows > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+.quote-summary__label {
+  margin: 16px 0 6px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.quote-summary__books {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.quote-summary__books li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+.quote-summary__books--removed li {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* ---------------------------------------------------------------- checkout */
+
+.checkout {
+  display: grid;
+  gap: 28px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .checkout {
+    grid-template-columns: 1fr 340px;
+    gap: 36px;
+  }
+}
+
+.checkout__form h2 {
+  font-size: 1.15rem;
+  margin: 22px 0 12px;
+}
+.checkout__form h2:first-of-type {
+  margin-top: 18px;
+}
+
+.checkout__payment {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 22px 0;
+}
+.checkout__payment legend {
+  padding: 0 6px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--navy);
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 0.94rem;
+  cursor: pointer;
+}
+.radio input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.checkout__summary {
+  position: sticky;
+  top: 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+}
+.checkout__summary h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.checkout__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.checkout__items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 0.92rem;
+}
+
+/* ------------------------------------------------------- cart line extras */
+
+.cart-line__origin {
+  margin: 4px 0 6px !important;
+}
+
+.cart-line__was {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-decoration: line-through;
 }

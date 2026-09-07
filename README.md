@@ -27,8 +27,10 @@ document are in English.
 
 ```bash
 npm install
-npm run dev      # http://localhost:3000
+npm run dev       # http://localhost:3000
+npm run lint      # exits 0, no interactive setup
 npm run build && npm start
+npm run covers    # optional: download covers locally before a demo
 ```
 
 Node 18.18+ is required.
@@ -49,8 +51,9 @@ not touched in any way — this deploys to its own URL.
 | `/catalogo` | Full catalogue with search and filters (level, grade/semester, subject, collection, digital resources) |
 | `/libro/[slug]` | Book page: cover, title, author, ISBN, subject, collection, description, digital-resources note, buy or request-quote actions |
 | `/paquetes` | School package builder: pick a package, add or remove titles, set the number of students, see the total |
-| `/carrito` | Cart with quantities and totals; also converts the same order into an institutional quote |
-| `/pedido/confirmado` | Simulated order confirmation with the digital access hand-off |
+| `/carrito` | Cart with quantities, package discounts and totals; also converts the same order into an institutional quote |
+| `/pedido/checkout` | Simulated checkout: contact, delivery address, payment method. No gateway, no backend |
+| `/pedido/confirmado` | Order confirmation built from a frozen snapshot, so the totals match the checkout exactly |
 | `/cotizacion` | Quote request for schools, distributors and teachers (submits to a confirmation state, sends nothing) |
 | `/recursos` | How digital access could be released after purchase, plus a simulated "my resources" view |
 | `/admin` | Illustrative admin screens: overview, catalogue, orders, schools, distributors |
@@ -76,11 +79,45 @@ helpers used across the app.
 Covers are loaded directly from `stanfordpublishing.com.mx`. If a cover cannot be fetched,
 `BookCover` falls back to a typographic cover, so a demo never shows a broken image.
 
+### ISBNs
+
+All 74 ISBNs were validated (format, prefix, check digit) against the publisher's public
+catalogue. 39 are verified, 3 are marked "En trámite" because the official page says so, and
+32 cannot be confirmed — the source itself prints malformed values (a `971-` prefix that is
+not a valid ISBN-13 prefix, failed check digits, or evident `123-456` placeholders). Nothing
+was invented: those titles display `Por confirmar`.
+
+The full breakdown, with the reason for each one, is in `docs/isbn-status.md`.
+
+### Covers
+
+Covers load from a local copy when one exists and from the publisher's site otherwise, with a
+typographic cover as the last fallback. To remove the dependency on the remote server before a
+demo:
+
+```bash
+npm run covers
+```
+
+This downloads every cover into `public/covers/` and rewrites `src/data/covers.ts` with the
+files that actually saved. Anything that fails is listed in `covers-pendientes.json` and left
+out of the manifest, so a missing file can never produce a 404 and no cover is ever swapped
+for another.
+
 ### Simulated on purpose
 
 Prices, discounts, shipping, stock, order folios, access codes and every admin record are
-invented placeholders, clearly labelled in the UI with a "Muestra" note. They exist to make
-the flow legible, not to state commercial terms.
+invented placeholders. Wherever a viewer makes a decision, the screen carries a short note:
+*"Precio hipotético para esta muestra, sujeto a validación con Stanford Publishing."* They
+exist to make the flow legible, not to state commercial terms.
+
+### Money
+
+`src/lib/pricing.ts` is the single source of truth for totals. Cart, checkout, quote and
+confirmation all render through `OrderSummaryLines`, so subtotal, discount, shipping and total
+are always the same numbers. Package lines carry their origin and discount rate, which is why
+a 15% institutional discount survives from the package builder all the way to the
+confirmation.
 
 ## Visual direction
 

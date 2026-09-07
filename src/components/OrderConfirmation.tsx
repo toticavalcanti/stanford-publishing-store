@@ -2,23 +2,37 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useCart } from "./CartProvider";
-import { books } from "@/data/catalog";
+import OrderSummaryLines from "./OrderSummaryLines";
+import { getBookById } from "@/data/catalog";
 import { mxn } from "@/lib/format";
-import type { CartLine } from "@/data/types";
+import { lineKey, lineTotal } from "@/lib/pricing";
+import { readOrderSnapshot } from "@/lib/orderSnapshot";
+import type { OrderSnapshot } from "@/data/types";
 
 export default function OrderConfirmation() {
-  const { lines, subtotal, clear, ready } = useCart();
-  const [snapshot, setSnapshot] = useState<{ lines: CartLine[]; total: number } | null>(null);
+  const [order, setOrder] = useState<OrderSnapshot | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
-  // Freeze the cart at arrival so the summary stays visible after clearing it.
   useEffect(() => {
-    if (!ready) return;
-    setSnapshot((prev) => prev ?? { lines, total: subtotal });
-    clear();
-  }, [ready, lines, subtotal, clear]);
+    setOrder(readOrderSnapshot());
+    setLoaded(true);
+  }, []);
 
-  const items = snapshot?.lines ?? [];
+  if (!loaded) return <p className="muted">Cargando la confirmación…</p>;
+
+  if (!order) {
+    return (
+      <div className="empty">
+        <h1>No encontramos un pedido reciente</h1>
+        <p className="muted small">
+          La confirmación se genera al terminar el pago. Vuelve al catálogo para iniciar uno nuevo.
+        </p>
+        <Link href="/catalogo" className="btn btn--sm">
+          Ir al catálogo
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="confirmation confirmation--order">
@@ -27,32 +41,33 @@ export default function OrderConfirmation() {
       </span>
       <h1>Pedido confirmado</h1>
       <p className="muted">
-        Folio <strong>SP-2420</strong>. Enviamos el comprobante y los accesos digitales al correo
-        registrado.
+        Folio <strong>{order.reference}</strong>
+        {order.buyer.name ? ` · ${order.buyer.name}` : ""}. Los accesos digitales se enviarían al
+        correo registrado.
       </p>
 
-      {items.length > 0 && (
-        <div className="card confirmation__summary">
-          <ul className="confirmation__items">
-            {items.map((line) => {
-              const book = books.find((b) => b.id === line.bookId);
-              if (!book) return null;
-              return (
-                <li key={line.bookId}>
-                  <span>
-                    {book.title} <span className="muted small">× {line.quantity}</span>
-                  </span>
-                  <span className="price">{mxn(book.price * line.quantity)}</span>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="confirmation__total">
-            <span>Total</span>
-            <span className="price">{mxn(snapshot?.total ?? 0)}</span>
-          </p>
-        </div>
-      )}
+      <div className="card confirmation__summary">
+        <ul className="confirmation__items">
+          {order.lines.map((line) => {
+            const book = getBookById(line.bookId);
+            return (
+              <li key={lineKey(line)}>
+                <span>
+                  {book?.title ?? line.bookId} <span className="muted small">× {line.quantity}</span>
+                  {line.packageName && (
+                    <span className="muted small"> · {line.packageName}</span>
+                  )}
+                </span>
+                <span className="price">{mxn(lineTotal(line))}</span>
+              </li>
+            );
+          })}
+        </ul>
+        <OrderSummaryLines
+          totals={order.totals}
+          discountRate={order.lines.find((l) => l.discount)?.discount}
+        />
+      </div>
 
       <div className="row">
         <Link href="/recursos" className="btn">
@@ -64,7 +79,7 @@ export default function OrderConfirmation() {
       </div>
 
       <p className="small muted">
-        Prototipo: no se procesó ningún pago ni se generó un pedido real.
+        Demostración visual. No se procesó ningún cobro ni se generó un pedido real.
       </p>
     </div>
   );
