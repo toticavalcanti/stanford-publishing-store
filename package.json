@@ -1,5 +1,5 @@
 {
-  "name": "stanford-publishing-store-prototype",
+  "name": "stanford-publishing-store",
   "version": "0.1.0",
   "private": true,
   "description": "Clickable visual prototype of an online bookstore for Stanford Publishing (mock data only).",
