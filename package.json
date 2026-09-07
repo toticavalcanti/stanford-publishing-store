@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "covers": "node scripts/download-covers.mjs"
+    "covers": "node scripts/download-covers.mjs",
+    "test": "tsx tests/flows.test.ts"
   },
   "dependencies": {
     "next": "^15.5.25",
@@ -22,6 +23,7 @@
     "@types/react-dom": "19.1.6",
     "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.25",
+    "tsx": "^4.23.13",
     "typescript": "5.7.2"
   }
 }
