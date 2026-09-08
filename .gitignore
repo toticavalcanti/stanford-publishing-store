@@ -6,4 +6,9 @@ out
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# Salesforce CLI local cache (written by the IDE extension)
 .sf/
+
+# Full-size cover originals kept by scripts/optimize-covers.mjs
+public/covers/original/

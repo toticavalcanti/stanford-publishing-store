@@ -1,5 +1,7 @@
 /* Logic checks for the money paths and the catalogue. Run with: npx tsx tests/flows.test.ts */
 import assert from "node:assert/strict";
+import path from "node:path";
+import { existsSync } from "node:fs";
 import { books, getBookById, isbnLabel, coverSrc, stageLabel } from "../src/data/catalog";
 import { packages } from "../src/data/packages";
 import { computeTotals, lineKey, lineTotal, round2 } from "../src/lib/pricing";
@@ -69,10 +71,21 @@ test("conteos: 39 verificados / 3 en trámite / 32 por confirmar", () => {
 console.log("\n--- portadas ---");
 test("coverSrc devuelve una URL utilizable para los 74", () =>
   books.forEach((b) => assert.ok(coverSrc(b).length > 10, b.id)));
-test("sin manifiesto local, ninguna ruta /covers/ puede dar 404", () =>
-  books.forEach((b) =>
-    assert.ok(!coverSrc(b).startsWith("/covers/"), `${b.id} apunta a un archivo local ausente`)
-  ));
+test("toda ruta /covers/ existe en el disco (nunca 404)", () =>
+  books.forEach((b) => {
+    const src = coverSrc(b);
+    if (!src.startsWith("/covers/")) return;
+    const file = path.join(process.cwd(), "public", src);
+    assert.ok(existsSync(file), `${b.id} apunta a ${src}, que no existe`);
+  }));
+test("las portadas sin copia local siguen teniendo URL remota", () =>
+  books.forEach((b) => {
+    const src = coverSrc(b);
+    assert.ok(
+      src.startsWith("/covers/") || src.startsWith("https://"),
+      `${b.id}: ${src}`
+    );
+  }));
 
 console.log("\n--- carrito: compra simple ---");
 const simple: CartLine[] = [

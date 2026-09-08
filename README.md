@@ -30,7 +30,8 @@ npm install
 npm run dev       # http://localhost:3000
 npm run lint      # exits 0, no interactive setup
 npm run build && npm start
-npm run covers    # optional: download covers locally before a demo
+npm test          # 31 logic checks (catalogue, ISBNs, money, cart)
+npm run covers:all # download + compress covers locally before a demo
 ```
 
 Node 18.18+ is required.
@@ -92,17 +93,26 @@ The full breakdown, with the reason for each one, is in `docs/isbn-status.md`.
 ### Covers
 
 Covers load from a local copy when one exists and from the publisher's site otherwise, with a
-typographic cover as the last fallback. To remove the dependency on the remote server before a
-demo:
+typographic cover as the last fallback. Rebuild the whole local set with one command:
 
 ```bash
-npm run covers
+npm run covers:all
 ```
 
-This downloads every cover into `public/covers/` and rewrites `src/data/covers.ts` with the
-files that actually saved. Anything that fails is listed in `covers-pendientes.json` and left
-out of the manifest, so a missing file can never produce a 404 and no cover is ever swapped
-for another.
+That runs two scripts in order:
+
+1. `covers` downloads all 74 covers into `public/covers/` and rewrites `src/data/covers.ts`
+   with the files that actually saved. Failures are listed in `covers-pendientes.json` and
+   left out of the manifest, so a missing file can never produce a 404 and no cover is ever
+   swapped for another.
+2. `covers:optimize` re-encodes them as WebP at 600px wide (the grid never shows them
+   larger), moves the full-size files to `public/covers/original/` and updates the manifest.
+   This takes the set from roughly 62 MB to about 5 MB, which matters when the demo runs on
+   a phone.
+
+`src/data/covers.ts` is generated. If you ever unzip this project over an existing checkout,
+re-run `npm run covers:all` — otherwise the manifest reverts to empty and the app silently
+goes back to loading covers from the publisher's server.
 
 ### Simulated on purpose
 

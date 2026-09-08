@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint .",
     "covers": "node scripts/download-covers.mjs",
-    "test": "tsx tests/flows.test.ts"
+    "test": "tsx tests/flows.test.ts",
+    "covers:optimize": "node scripts/optimize-covers.mjs",
+    "covers:all": "npm run covers && npm run covers:optimize"
   },
   "dependencies": {
     "next": "^15.5.25",
